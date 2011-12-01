@@ -102,7 +102,6 @@ def bills_cashless(cursor):
 		show_bills(["{0} от {1}".format(x[1],x[2] )for x in bills],[(x[3],x[4],x[5],x[6],x[7]) for x in bills])
 		print ("{0}.Новый счёт".format(len(bills)))
 		print ("{0}.На уровень вверх".format(len(bills)+1))
-
 		
 		#print ([(k,v[1]) for k,v in enumerate(bills)])
 		bill=select_with_name([(k,v[1]) for k,v in enumerate(bills)]+[('Н','Новый счёт'),('В','На уровень вверх')],'Выберите номер счета [0]:',2,verbouse=False)
