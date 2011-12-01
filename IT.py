@@ -90,7 +90,7 @@ def bill_close(cursor,ID):
 							#cursor.execute(QUERY)
 	# закрываем счёт
 	QUERY+=["UPDATE `billcashless` SET `Peselev`=1,`Motya`=1,`Boroda`=1,`Oplata`=1,`Documents`=1,`DocReturnDate`='"+"-".join((str(year),str(month),str(day)))+"',`DeliveryDate`='"+"-".join((str(year),str(month),str(day)))+"' WHERE `ID`="+ID+";"]
-							#logging(QUERY)
+							#logging(QUERY)	
 							#cursor.execute(QUERY)
 	query_logging(cursor,*QUERY,name='Закрытие счёта №'+ID)
 def bills_cashless(cursor):
