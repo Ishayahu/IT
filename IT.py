@@ -206,8 +206,8 @@ def new_bill(cursor):
 	QUERY='SELECT SUM(`a`.`Price`) FROM `assets` `a` WHERE `a`.`BillCashlessNumber`='+str(ID)+" GROUP BY `a`.`BillCashlessNumber`;"
 	cursor.execute(QUERY)
 	bill_price=[row[0] for row in cursor.fetchall()][0]
-	sopr='\nВ приемную господина Вайсберга\nПрошу Вас разрешить оплату счёта '+str(BilNumber)+' от '+"-".join((str(year),str(month),str(day)))+'\nна сумму '+str(bill_price)+'\nцелевое назначение '+what_in_bill+'\nОбъект  - Склад\nСвоевременное предоставление документов гарантирую.\nОтветственное лицо: Ластов Ишаяу\nКонтактные телефоны: +7-901-569-81-86; 645-05-16\nДата '+"-".join((str(year),str(month),str(day)))+'\nРасписка в приеме документов по произведенной оплате:\nОригинал счёта\nДоговор\nАкт\nНакладная\nСчёт-фактура'
-	temp=open('it.tmp','w')
+	sopr='В приемную господина Вайсберга\nПрошу Вас разрешить оплату счёта '+str(BilNumber)+' от '+"-".join((str(year),str(month),str(day)))+'\nНа сумму '+str(bill_price)+' руб.\nЦелевое назначение: '+what_in_bill+'\nОбъект  - Склад\nСвоевременное предоставление документов гарантирую.\nОтветственное лицо: Ластов Ишаяу\nКонтактные телефоны: +7-901-569-81-86; 645-05-16\nДата '+"-".join((str(year),str(month),str(day)))+'\nРасписка в приеме документов по произведенной оплате:\nОригинал счёта\nДоговор\nАкт\nНакладная\nСчёт-фактура'
+	temp=open('it.txt','w')
 	temp.write(sopr)
 	temp.close()
 	os.startfile('it.tmp')
@@ -399,7 +399,7 @@ def new_active(cursor,status=0,BillCashlessNumber=-1,BillNumber='',DistributorNa
 				else:
 					QUERY="INSERT INTO `assets`(`AssetNumber`, `AssetCategoryNumber`, `Model`, `SerialNumber`, `StatusCode`, `Place`, `PCName`, `ByeDate`, `Garanty`, `Notes`, `Price`, `DistributorName`, `BillNumber`,  `BillCashlessNumber`,`MethodOfPayment`, `GarantyNumber`, `CancellationDate`) VALUES ("+",".join(('null',str(category[0]),"'"+model+"'",("'"+SerialNumber+"'" if SerialNumber else "''"),"'"+str(StatusCode)+"'", "'Склад'", 'null', "'"+"-".join((str(year),str(month),str(day)))+"'", str(Garanty), 'null', str(Price), "'"+DistributorName+"'", "'"+str(BillNumber)+"'", "'"+str(BillCashlessNumber)+"'", "'NC'", str(GarantyNumber), "'0000-00-00'"))+")"
 				#print (QUERY)
-				if BillCashlessNumber==-1:logging(QUERY)
+				logging(QUERY)
 				cursor.execute(QUERY)
 				# вернуть введенный номер
 				QUERY2="SELECT MAX(`AssetNumber`) FROM `assets`"
