@@ -140,7 +140,7 @@ def get_datatime():
 	if day<10: day = "0%s" % day
 	return year, month, day, hour, minutes, sec
 def get_distributor(cursor):
-	QUERY="SELECT `d`.`DistributorName` FROM `distributors` `d` GROUP BY `d`.`DistributorName` DESC"
+	QUERY="SELECT `d`.`DistributorName` FROM `distributors` `d` LEFT OUTER JOIN `assets` `a` ON `a`.`DistributorName`=`d`.`DistributorName` GROUP BY `d`.`DistributorName` ORDER BY COUNT(`a`.`DistributorName`) DESC"
 	cursor.execute(QUERY)
 	distributers=[row[0] for row in cursor.fetchall()]
 	DistributorName=select(distributers,'Выберите поставщика [0]: ')
@@ -173,12 +173,13 @@ def new_bill(cursor):
 	cursor.execute(QUERY_ID)
 	ID=[row[0] for row in cursor.fetchall()][0]+1
 	#log=''
+	QUERY_U=[]
 	while True:
-		new_active(cursor,status=6,BillCashlessNumber=ID,BillNumber=BilNumber,DistributorName=DistributorName)
+		QUERY_U+=new_active(cursor,status=6,BillCashlessNumber=ID,BillNumber=BilNumber,DistributorName=DistributorName)
 		ans=what_to_do(('Ввести еще актив','Продолжить'))
 		if ans=='п': break
 	# записать счет в таблицу
-	QUERY_U="INSERT INTO `billcashless`(`ID`, `BilNumber`, `DistributorName`,`BillDate`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate`) VALUES ("+str(ID)+",'"+str(BilNumber)+"','"+str(DistributorName)+"','"+"-".join((str(year),str(month),str(day)))+"',0,0,0,0,0,'0000-00-00','0000-00-00')"
+	QUERY_U+=["INSERT INTO `billcashless`(`ID`, `BilNumber`, `DistributorName`,`BillDate`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate`) VALUES ("+str(ID)+",'"+str(BilNumber)+"','"+str(DistributorName)+"','"+"-".join((str(year),str(month),str(day)))+"',0,0,0,0,0,'0000-00-00','0000-00-00')"]
 	# запись в логи
 	#logging(log,QUERY_U)
 	query_logging(cursor,QUERY_U,name='Ввод счёта №'+str(ID)+' после ввода активов')
@@ -332,7 +333,7 @@ def budjet(cursor):
 		file.close()
 def new_active(cursor,status=0,BillCashlessNumber=-1,BillNumber='',DistributorName=''):
 	""" Ввод нового актива, status=0 для новго просто, 6 - для нового, введенного в заказ; BillCashlessNumber=-1 для купленного не по счёту, иначе - номер счёта из таблицы 
-	возвращает запрос отправленный в SQL для логов
+	при безнал возвращает запрос для выполнения его вместе с формированием счёта
 	"""
 	now = datetime.datetime.now() 
 	year, month, day, hour, minutes, sec, wday, yday, isdst = now.timetuple()  
@@ -358,7 +359,7 @@ def new_active(cursor,status=0,BillCashlessNumber=-1,BillNumber='',DistributorNa
 			model=select(models+['На уровень вверх',],'Выберите модель актива: ',selfname=True)
 			if model=='На уровень вверх': break
 			while True:
-				SerialNumber=get_string('Введите серийный номер актива',default='',min=0,max=100,allow_zero=True)
+				#SerialNumber=get_string('Введите серийный номер актива',default='',min=0,max=100,allow_zero=True)
 				if not status==6:
 					StatusCode=select_with_name([(0,'Новое'),(1,'Б/У'),(2,'Глючное'),(3,'Не рабочее'),(4,'Возврат по гарантии'),(5,'Списано')],'Выберите статус актива [0]:',2)
 				else:
@@ -367,38 +368,42 @@ def new_active(cursor,status=0,BillCashlessNumber=-1,BillNumber='',DistributorNa
 				if not BillNumber:
 					BillNumber=get_string('Введите номер чека',default='',min=0,max=100,allow_zero=False)
 				if not DistributorName:
-					QUERY="SELECT `d`.`DistributorName` FROM `distributors` `d` INNER JOIN `assets` `a` ON `a`.`DistributorName`=`d`.`DistributorName` GROUP BY `d`.`DistributorName` ORDER BY COUNT(`a`.`DistributorName`) DESC"
-					cursor.execute(QUERY)
-					distributers=[row[0] for row in cursor.fetchall()]
-					DistributorName=select(distributers,'Выберите поставщика [0]: ')
+					#QUERY="SELECT `d`.`DistributorName` FROM `distributors` `d` LEFT OUTER JOIN `assets` `a` ON `a`.`DistributorName`=`d`.`DistributorName` GROUP BY `d`.`DistributorName` ORDER BY COUNT(`a`.`DistributorName`) DESC"
+					#cursor.execute(QUERY)
+					#distributers=[row[0] for row in cursor.fetchall()]
+					#DistributorName=select(distributers,'Выберите поставщика [0]: ')
+					DistributorName=get_distributor(cursor)
 				Price=get_float('Введите цену актива',default=0,min=0,max=25000,allow_zero=True)
-				print (BillCashlessNumber)
-				print (BillCashlessNumber!=-1)
+				#print (BillCashlessNumber)
+				#print (BillCashlessNumber!=-1)
 				if BillCashlessNumber==-1:
 					MethodOfPayment=what_to_do_stolb(('Cash','NonCash')).upper()
 					if MethodOfPayment=='N': MethodOfPayment='NC'
 				GarantyNumber=get_integer('Введите номер гарантии',default=0,min=0,max=999,allow_zero=True) if Garanty else 0
-				# если из счёта безнал
-				if BillCashlessNumber==-1:
-					QUERY="INSERT INTO `assets`(`AssetNumber`, `AssetCategoryNumber`, `Model`, `SerialNumber`, `StatusCode`, `Place`, `PCName`, `ByeDate`, `Garanty`, `Notes`, `Price`, `DistributorName`, `BillNumber`, `MethodOfPayment`, `GarantyNumber`, `CancellationDate`) VALUES ("+",".join(('null',str(category[0]),"'"+model+"'",("'"+SerialNumber+"'" if SerialNumber else "''"),str(StatusCode[0]), "'Склад'", 'null', "'"+"-".join((str(year),str(month),str(day)))+"'", str(Garanty), 'null', str(Price), "'"+DistributorName+"'", "'"+BillNumber+"'", "'"+MethodOfPayment+"'", str(GarantyNumber), "'0000-00-00'"))+")"
-					
-					# сделать логирование с указанием номера счёта
-					
-				# если оплата по налу
-				else:
-					QUERY="INSERT INTO `assets`(`AssetNumber`, `AssetCategoryNumber`, `Model`, `SerialNumber`, `StatusCode`, `Place`, `PCName`, `ByeDate`, `Garanty`, `Notes`, `Price`, `DistributorName`, `BillNumber`,  `BillCashlessNumber`,`MethodOfPayment`, `GarantyNumber`, `CancellationDate`) VALUES ("+",".join(('null',str(category[0]),"'"+model+"'",("'"+SerialNumber+"'" if SerialNumber else "''"),"'"+str(StatusCode)+"'", "'Склад'", 'null', "'"+"-".join((str(year),str(month),str(day)))+"'", str(Garanty), 'null', str(Price), "'"+DistributorName+"'", "'"+str(BillNumber)+"'", "'"+str(BillCashlessNumber)+"'", "'NC'", str(GarantyNumber), "'0000-00-00'"))+")"
+				copies=get_integer('Введите количество экземпляров',default=1,min=1,max=100,allow_zero=False)
+				QUERY=[]
+				for copie in range(1,copies+1):
+					SerialNumber=get_string('Введите серийный номер актива',default='',min=0,max=100,allow_zero=True)
+					# если оплата за наличный расчёт
+					if BillCashlessNumber==-1:
+						QUERY+=["INSERT INTO `assets`(`AssetNumber`, `AssetCategoryNumber`, `Model`, `SerialNumber`, `StatusCode`, `Place`, `PCName`, `ByeDate`, `Garanty`, `Notes`, `Price`, `DistributorName`, `BillNumber`, `MethodOfPayment`, `GarantyNumber`, `CancellationDate`) VALUES ("+",".join(('null',str(category[0]),"'"+model+"'",("'"+SerialNumber+"'" if SerialNumber else "''"),str(StatusCode[0]), "'Склад'", 'null', "'"+"-".join((str(year),str(month),str(day)))+"'", str(Garanty), 'null', str(Price), "'"+DistributorName+"'", "'"+BillNumber+"'", "'"+MethodOfPayment+"'", str(GarantyNumber), "'0000-00-00'"))+")"]
+					# если оплата по безналу
+					else:
+						QUERY+=["INSERT INTO `assets`(`AssetNumber`, `AssetCategoryNumber`, `Model`, `SerialNumber`, `StatusCode`, `Place`, `PCName`, `ByeDate`, `Garanty`, `Notes`, `Price`, `DistributorName`, `BillNumber`,  `BillCashlessNumber`,`MethodOfPayment`, `GarantyNumber`, `CancellationDate`) VALUES ("+",".join(('null',str(category[0]),"'"+model+"'",("'"+SerialNumber+"'" if SerialNumber else "''"),"'"+str(StatusCode)+"'", "'Склад'", 'null', "'"+"-".join((str(year),str(month),str(day)))+"'", str(Garanty), 'null', str(Price), "'"+DistributorName+"'", "'"+str(BillNumber)+"'", "'"+str(BillCashlessNumber)+"'", "'NC'", str(GarantyNumber), "'0000-00-00'"))+")"]
+						return QUERY
 				#print (QUERY)
-				logging(QUERY)
-				cursor.execute(QUERY)
+				#logging(QUERY)
+				#cursor.execute(QUERY)
+				query_logging(cursor,*QUERY,name='Ввод активов:')
 				# вернуть введенный номер
 				QUERY2="SELECT MAX(`AssetNumber`) FROM `assets`"
 				cursor.execute(QUERY2)
 				number=[row[0] for row in cursor.fetchall()][0]
-				print ("Номер актива: ",number)
-				if BillCashlessNumber==-1:
-					break
+				if copies==1:
+					print ("Номер актива: ",number)
 				else:
-					return QUERY
+					print ("Номера активов с {0} по {1}".format(number-copies+1, number))
+				break
 def cartrige_change(cursor):
 	QUERY = "SELECT DISTINCT `Department` FROM `printer_department`"
 	cursor.execute(QUERY)
