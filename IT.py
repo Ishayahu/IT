@@ -45,24 +45,13 @@ def main():
 def new_zayavka(cursor):
 	pass
 def bill_delete(cursor,ID):
-# старое
-	#logging('Удаление счёта'+ID)
-	# выбираем все активы, привязанные к этому счёту и удаляем их
-	#QUERY='DELETE FROM `assets` WHERE `BillCashlessNumber`='+ID+";"
-	#logging(QUERY)
-	#cursor.execute(QUERY)
-	# удаляем счёт
-	#QUERY='DELETE FROM `billcashless` WHERE `ID`='+ID+";"
-	#logging(QUERY)
-	#cursor.execute(QUERY)
-	
 	# составление списка запросов: удаление активов и счёта
 	# выбираем все активы, привязанные к этому счёту и удаляем их
 	QUERY1='DELETE FROM `assets` WHERE `BillCashlessNumber`='+ID+";"
 	# удаляем счёт
 	QUERY2='DELETE FROM `billcashless` WHERE `ID`='+ID+";"
 	queries=(QUERY1,QUERY2)
-	query_logging(cursor,queries,name='Удаление счёта'+ID)
+	query_logging(cursor,*queries,name='Удаление счёта'+ID)
 def bill_close(cursor,ID):
 	logging('Закрытие счёта'+ID)
 	year, month, day, hour, minutes, sec=get_datatime()
@@ -144,8 +133,6 @@ def bills_cashless(cursor):
 		if changed:
 			UPDATE_Q="UPDATE `billcashless` SET  `Peselev`="+str(tmp[0])+",`Motya`="+str(tmp[1])+",`Boroda`="+str(tmp[2])+",`Oplata`="+str(tmp[3])+",`Documents`="+str(tmp[4])+" WHERE `ID`="+str(bills[bill[0]][0])
 			query_logging(cursor,UPDATE_Q,name='Изменение состояния счёта '+str(bills[bill[0]][0]))
-										#logging(UPDATE_Q)
-										#cursor.execute(UPDATE_Q)
 def get_datatime():
 	now = datetime.datetime.now() 
 	year, month, day, hour, minutes, sec, wday, yday, isdst = now.timetuple()  
@@ -167,6 +154,8 @@ def logging(*strings):
 	logfile.close()
 def query_logging(cursor,*queries,name=''):
 	"""Функция для ведения лога запросов"""
+	#print (queries)
+	#exit()
 	logfile=open(LOGFILE_NAME,'a')
 	year, month, day, hour, minutes, sec=get_datatime()
 	logfile.write(name+"-".join((str(year),str(month),str(day)))+' '+":".join((str(hour),str(minutes),str(sec)))+'\n')
@@ -210,7 +199,7 @@ def new_bill(cursor):
 	temp=open('it.txt','w')
 	temp.write(sopr)
 	temp.close()
-	os.startfile('it.tmp')
+	os.startfile('it.txt')
 def show_bills(list,datas):
 	"""функция для отображения полученных счетов с их данными в таблице (список счетов, список данных:("ИЯ","Мотя","Борода","Оплата","Документы"), 0-нет, 1-да)"""
 	# этапы прохождения счёта
