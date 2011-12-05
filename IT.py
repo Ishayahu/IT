@@ -182,7 +182,8 @@ def new_bill(cursor):
 	QUERY_U+=["INSERT INTO `billcashless`(`ID`, `BilNumber`, `DistributorName`,`BillDate`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate`) VALUES ("+str(ID)+",'"+str(BilNumber)+"','"+str(DistributorName)+"','"+"-".join((str(year),str(month),str(day)))+"',0,0,0,0,0,'0000-00-00','0000-00-00')"]
 	# запись в логи
 	#logging(log,QUERY_U)
-	query_logging(cursor,QUERY_U,name='Ввод счёта №'+str(ID)+' после ввода активов')
+	print (QUERY_U)
+	query_logging(cursor,*QUERY_U,name='Ввод счёта №'+str(ID)+' после ввода активов')
 								#cursor.execute(QUERY_U)
 	#print (QUERY_U)
 	# получение купленых товаров для сопроводиловки
