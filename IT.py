@@ -452,40 +452,43 @@ def cartrige_change(cursor):
 			if printer[0]=='0': break
 			# возвращается значение (номер, модель)
 			# выборка имеющихся картриджей
-			QUERY = "SELECT `a`.`AssetNumber` FROM `printer_cartridge_type` `pct` INNER JOIN `cartridge_cartridge_type` `cct` ON `cct`.`CartridgeType`=`pct`.`CartridgeType` INNER JOIN `assets` `a` ON `a`.`Model`=`cct`.`Model` WHERE `pct`.`Model`='"+printer[1]+"' AND `a`.`AssetCategoryNumber`=1 AND `a`.`StatusCode`=0"
-			cursor.execute(QUERY)
-			cartriges=[row[0] for row in cursor.fetchall()]
-			if not cartriges:
-				print ("Нет подходящих картриджей!")
-				break
 			while True:
+				QUERY = "SELECT `a`.`AssetNumber` FROM `printer_cartridge_type` `pct` INNER JOIN `cartridge_cartridge_type` `cct` ON `cct`.`CartridgeType`=`pct`.`CartridgeType` INNER JOIN `assets` `a` ON `a`.`Model`=`cct`.`Model` WHERE `pct`.`Model`='"+printer[1]+"' AND `a`.`AssetCategoryNumber`=1 AND `a`.`StatusCode`=0"
+				cursor.execute(QUERY)
+				cartriges=[row[0] for row in cursor.fetchall()]
+				if not cartriges:
+					print ("Нет подходящих картриджей!")
+					break
+			#while True:
 				cartrige=select(cartriges+['На уровень вверх',],'Выберите номер картриджа [0]:')
 				if cartrige=='На уровень вверх': break
 				print ("Установить в принтер {0}<{1}> в отделе {3} картридж {2}?".format(printer[1],printer[0],cartrige,department))
 				ans=what_to_do(('да','нет'))
 				if ans=='д':
-					logging('Замена картриджа')
-					# поставить дату списания предыдущего картриджа
+					#logging('Замена картриджа')
+					QUERY=[]
+					# поставить дату списания предыдущего картриджа. Поиск предыдущего картриджа
 					Q1="SELECT `pc`.`Cartridge` tmp1 FROM `printer_cartridge` `pc` INNER JOIN `assets` AS `a` ON `pc`.`Cartridge`=`a`.`AssetNumber` INNER JOIN `cartridge_cartridge_type` `cct` ON `cct`.`Model`=`a`.`Model` WHERE `pc`.`Printer`="+str(printer[0])+" AND `pc`.`put`=(SELECT MAX(`pc`.`put`) FROM `printer_cartridge` `pc` INNER JOIN `assets` AS `a` ON `pc`.`Cartridge`=`a`.`AssetNumber` INNER JOIN `cartridge_cartridge_type` `cct` ON `cct`.`Model`=`a`.`Model` WHERE `pc`.`Printer`="+str(printer[0])+" AND `cct`.`CartridgeType`=(SELECT `cct`.`CartridgeType` FROM `assets` AS `a` INNER JOIN `cartridge_cartridge_type` `cct` ON `cct`.`Model`=`a`.`Model` WHERE `a`.`AssetNumber`="+str(cartrige)+"))  AND `cct`.`CartridgeType`=(SELECT `cct`.`CartridgeType` FROM `assets` AS `a` INNER JOIN `cartridge_cartridge_type` `cct` ON `cct`.`Model`=`a`.`Model` WHERE `a`.`AssetNumber`="+str(cartrige)+")"
 					cursor.execute(Q1)
 					for k in cursor.fetchall():
 						assetnumber=k[0]
 					if "assetnumber" in locals():
 						print (assetnumber)
-						QUERY="UPDATE `assets` SET `CancellationDate`='"+"-".join((str(year),str(month),str(day)))+" "+":".join((str(hour),str(minutes),str(sec)))+"' WHERE `AssetNumber`="+str(assetnumber)
-						logging (QUERY)
-						cursor.execute(QUERY)
+						QUERY+=["UPDATE `assets` SET `CancellationDate`='"+"-".join((str(year),str(month),str(day)))+" "+":".join((str(hour),str(minutes),str(sec)))+"' WHERE `AssetNumber`="+str(assetnumber)]
+						#logging (QUERY)
+						#cursor.execute(QUERY)
 					
 					# списываем картридж, который устанавливаем
-					QUERY = "UPDATE `assets` SET `StatusCode`=5 WHERE `AssetNumber`="+str(cartrige)
-					logging (QUERY)
-					cursor.execute(QUERY)
+					QUERY+=["UPDATE `assets` SET `StatusCode`=5 WHERE `AssetNumber`="+str(cartrige)]
+					#logging (QUERY)
+					#cursor.execute(QUERY)
 					
 					# вносим данные в таблицу картридж-принтер
-					QUERY = "INSERT INTO `printer_cartridge`(`Printer`, `Cartridge`, `put`) VALUES ("+",".join((str(printer[0]),str(cartrige),"'"+"-".join((str(year),str(month),str(day)))+" "+":".join((str(hour),str(minutes),str(sec)))))+"')"
-					logging (QUERY)
-					cursor.execute(QUERY)
+					QUERY+=["INSERT INTO `printer_cartridge`(`Printer`, `Cartridge`, `put`) VALUES ("+",".join((str(printer[0]),str(cartrige),"'"+"-".join((str(year),str(month),str(day)))+" "+":".join((str(hour),str(minutes),str(sec)))))+"')"]
+					#logging (QUERY)
+					#cursor.execute(QUERY)
 					
+					query_logging(cursor,*QUERY,name='Замена картриджа ')
 				elif ans=='н':
 					print ('Отмена задачи')
 def what_to_do_stolb(tuple):
