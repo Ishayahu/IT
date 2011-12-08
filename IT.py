@@ -74,7 +74,7 @@ def bill_close(cursor,ID):
 		# серийный номер, гарантия
 		SerialNumber=get_string('Введите серийный номер актива '+models[k]+' №'+str(assets[k]),default='',min=0,max=100,allow_zero=True)
 		Garanty=get_integer('Введите срок гарантии актива '+models[k]+' №'+str(assets[k]),default=0,min=0,max=999,allow_zero=True)
-		QUERY+=["UPDATE `assets` SET `SerialNumber`="+str(SerialNumber)+" `Garanty`="+str(Garanty)+" WHERE `AssetNumber` ="+str(assets[k])+";"]
+		QUERY+=["UPDATE `assets` SET `SerialNumber`='"+str(SerialNumber)+"', `Garanty`="+str(Garanty)+" WHERE `AssetNumber` ="+str(assets[k])+";"]
 							#logging(QUERY)
 							#cursor.execute(QUERY)
 	# закрываем счёт
@@ -182,7 +182,7 @@ def new_bill(cursor):
 	QUERY_U+=["INSERT INTO `billcashless`(`ID`, `BilNumber`, `DistributorName`,`BillDate`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate`) VALUES ("+str(ID)+",'"+str(BilNumber)+"','"+str(DistributorName)+"','"+"-".join((str(year),str(month),str(day)))+"',0,0,0,0,0,'0000-00-00','0000-00-00')"]
 	# запись в логи
 	#logging(log,QUERY_U)
-	print (QUERY_U)
+	#print (QUERY_U)
 	query_logging(cursor,*QUERY_U,name='Ввод счёта №'+str(ID)+' после ввода активов')
 								#cursor.execute(QUERY_U)
 	#print (QUERY_U)
