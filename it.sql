@@ -461,7 +461,7 @@ CREATE TABLE IF NOT EXISTS `repairing` (
 
 CREATE TABLE IF NOT EXISTS `statuses` (
   `StatusCode` int(10) unsigned NOT NULL auto_increment,
-  `SatusName` varchar(20) default NULL,
+  `StatusName` varchar(20) default NULL,
   PRIMARY KEY  (`StatusCode`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=7 ;
 
