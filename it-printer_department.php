@@ -16,7 +16,8 @@ if (isset($_GET['save']) and $_GET['save']=="Сохранить"):
 	$printer=$_GET['printer'];
 	$puted=$_GET['puted'];
 	$removed=$_GET['removed'];
-	echo "UPDATE `printer_department` SET `Printer`=$printer,`Department`='$department',`puted`='$puted',`removed`='$removed' WHERE `ID`= $ID;";
+	$r=mysql_query("UPDATE `printer_department` SET `Printer`=$printer,`Department`='$department',`puted`='$puted',`removed`='$removed' WHERE `ID`= $ID;");
+	echo "Done: UPDATE `printer_department` SET `Printer`=$printer,`Department`='$department',`puted`='$puted',`removed`='$removed' WHERE `ID`= $ID;\nResilt: $r";
 endif;
 /*department=012
 printer=189
@@ -24,23 +25,6 @@ puted=2011-09-25+00%3A00%3A00
 removed=0000-00-00+00%3A00%3A00
 save=%D0%A1%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B8%D1%82%D1%8C*/
 
-
-
-/*echo "<form action=\"it-assets_by_category.php\" method=\"GET\">\n<select name=\"cat\" size=1>\n";
-$r=mysql_query("SELECT `AssetCategoryNumber`,`Name` test FROM `assetcategory`;");
-for ($i=0; $i<mysql_num_rows($r);$i++)
-{
-$f=mysql_fetch_array($r);
-
-if ($f[AssetCategoryNumber]==$cat):
-echo "<option selected value=$f[AssetCategoryNumber]>$f[test]</option>\n";
-else:
-echo "<option value=$f[AssetCategoryNumber]>$f[test]</option>\n";
-endif;
-}
-echo "</select>\n<input type=\"submit\" name=\"go\" value=\"Select\">\n<input 
-type=\"reset\" name=\"b2\" value=\"Reset\">\n</form>\n";
-*/
 echo "<table border=1 width=100%>\n";
 echo "<tr><td>№</td><td>Отдел</td><td>Принтер</td><td>Поставлен</td><td>Редактирование</td></tr>\n";
 $r=mysql_query("SELECT `pd`.`ID`, `a`.`Model`, `pd`.`Department`, `pd`.`puted`, `pd`.`removed` FROM `printer_department` `pd` INNER JOIN `assets` `a` ON `pd`.`Printer`=`a`.`AssetNumber` WHERE `pd`.`removed`='0000-00-00 00:00:00';");
