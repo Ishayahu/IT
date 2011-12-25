@@ -345,7 +345,7 @@ def new_active(cursor,status=0,BillCashlessNumber=-1,BillNumber='',DistributorNa
 	categories=[(row[0],row[1]) for row in cursor.fetchall()]
 	# номер категории, название категории
 	while True:
-		category=select_with_name(categories+[('В','На уровень вверх')],'Выберите номер принтера [0]:',2)
+		category=select_with_name(categories+[('В','На уровень вверх')],'Выберите номер категории актива [0]:',2)
 		if category[0]=='В': break
 		models=[]
 		if category[0]==0: # получить список моделей принтера
