@@ -11,7 +11,7 @@ echo "Done: INSERT INTO `assetcategory`(`AssetCategoryNumber`, `Name`) VALUES (n
 endif;
 
 
-echo "<form action=\"it-assets_category.php\" method=\"GET\">\n<input type=\"text\" name=\"new_cat\" value=\"$f[puted]\"><input type=\"submit\" name=\"save\" value=\"Сохранить\">";
+echo "<form action=\"it-assets_category.php\" method=\"GET\">\n<input type=\"text\" name=\"new_cat\" value=\"\"><input type=\"submit\" name=\"save\" value=\"Сохранить\">";
 
 echo "<table border=1 width=100%>\n";
 echo "<tr><td>№</td><td>Категория</td></tr>\n";

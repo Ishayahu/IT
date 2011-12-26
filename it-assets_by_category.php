@@ -54,7 +54,7 @@ else:
 endif;
 $f=mysql_fetch_array($r);
 
-
+//если эту строку редактируем
 if ($f[AssetNumber]==$edit):
 	echo "<form action=\"it-assets_by_category.php\" method=\"GET\">\n";
 	echo "<td>$f[AssetNumber]<input type=\"hidden\" name=\"AssetNumber\" value=\"$f[AssetNumber]\"><input type=\"hidden\" name=\"cat\" value=\"$cat\"></td>";
@@ -78,6 +78,7 @@ if ($f[AssetNumber]==$edit):
 		}
 	echo "<td><input type=\"submit\" name=\"save\" value=\"Сохранить\"></td>";
 else:
+// те строки, которые не редактируем
 echo "<td>$f[AssetNumber]</td><td>$f[Model]</td><td>$f[SerialNumber]</td><td>$f[StatusName]</td><td>$f[GarantyNumber]</td><td>$f[Place]</td><td>$f[PCName]</td><td><a href=\"it-assets_by_category.php?edit=$f[AssetNumber]&cat=$cat\">Редактировать</a></td>";
 endif;
 
