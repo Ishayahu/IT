@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: localhost
--- Время создания: Дек 03 2011 г., 19:01
+-- Время создания: Янв 04 2012 г., 15:53
 -- Версия сервера: 5.0.51
 -- Версия PHP: 5.2.4-2ubuntu5.18
 
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `assetcategory` (
   `AssetCategoryNumber` int(10) unsigned NOT NULL auto_increment,
   `Name` varchar(30) default NULL,
   PRIMARY KEY  (`AssetCategoryNumber`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=46 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=49 ;
 
 --
 -- Дамп данных таблицы `assetcategory`
@@ -81,7 +81,10 @@ INSERT INTO `assetcategory` (`AssetCategoryNumber`, `Name`) VALUES
 (42, 'Монитор ЖК'),
 (43, 'Барабан принтера'),
 (44, 'USB удлинитель'),
-(45, 'Приход по заявке');
+(45, 'Приход по заявке'),
+(46, 'Модем GSM'),
+(47, 'Программа'),
+(48, 'CR-ROM IDE');
 
 -- --------------------------------------------------------
 
@@ -95,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `assets` (
   `Model` varchar(50) default NULL,
   `SerialNumber` varchar(20) default NULL,
   `StatusCode` int(10) unsigned default NULL,
-  `Place` varchar(20) default NULL,
+  `Place` varchar(100) default NULL,
   `PCName` varchar(20) default NULL,
   `ByeDate` date default NULL,
   `Garanty` int(10) unsigned default NULL,
@@ -108,11 +111,12 @@ CREATE TABLE IF NOT EXISTS `assets` (
   `GarantyNumber` int(10) unsigned default NULL,
   `CancellationDate` date default NULL,
   PRIMARY KEY  (`AssetNumber`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=292 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=327 ;
 
 --
 -- Дамп данных таблицы `assets`
 --
+
 
 
 -- --------------------------------------------------------
@@ -135,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `billcashless` (
   `DeliveryDate` date default NULL,
   PRIMARY KEY  (`ID`),
   KEY `fk_DistributorName` (`DistributorName`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=10 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11 ;
 
 --
 -- Дамп данных таблицы `billcashless`
@@ -265,6 +269,8 @@ CREATE TABLE IF NOT EXISTS `departments` (
 -- Дамп данных таблицы `departments`
 --
 
+INSERT INTO `departments` (`Department`) VALUES
+('Списание');
 
 -- --------------------------------------------------------
 
@@ -287,21 +293,6 @@ CREATE TABLE IF NOT EXISTS `distributors` (
 -- Дамп данных таблицы `distributors`
 --
 
-INSERT INTO `distributors` (`DistributorName`, `ContactPerson`, `ContactPersonJob`, `Email`, `Tel`, `Fax`, `Adress`) VALUES
-('Citilink', 'Каширина Светлана', '', '', '', '', ''),
-('Савеловский', 'Продавец', '', '', '', '', ''),
-('Стампа', 'Игорь Григорьевич', '', '', '', '', ''),
-('Km-shop', '', '', '', '', '', ''),
-('Ф-центр', '', '', '', '', '', ''),
-('Политрейд', '', '', '', '', '', ''),
-('Альфа-радио', '', '', '', '', '', ''),
-('Goodprint.ru', '', '', '', '', '', ''),
-('Остатки', '', '', '', '', '', ''),
-('AE Person', '', '', '', '', '', ''),
-('CLT system service', '', '', '', '', '', ''),
-('ESLab', '', '', '', '', '', ''),
-('Копи-групп', '', '', '', '7395852', '', ''),
-('LS Traid', 'Евгений Орлов', 'менеджер', 'e.orlov@lstrade.ru', '980-03-75', NULL, 'Каширское шоссе, 41');
 
 -- --------------------------------------------------------
 
@@ -416,7 +407,7 @@ CREATE TABLE IF NOT EXISTS `printer_department` (
   `removed` datetime default NULL,
   PRIMARY KEY  (`ID`),
   KEY `fk_printer` (`Printer`),
-  KEY `fk_department` (`Department`)
+  KEY `fk_dep` (`Department`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=30 ;
 
 --
@@ -469,7 +460,7 @@ CREATE TABLE IF NOT EXISTS `statuses` (
 -- Дамп данных таблицы `statuses`
 --
 
-INSERT INTO `statuses` (`StatusCode`, `SatusName`) VALUES
+INSERT INTO `statuses` (`StatusCode`, `StatusName`) VALUES
 (0, 'Новое'),
 (1, 'Б/У'),
 (2, 'Глючное'),
@@ -477,6 +468,45 @@ INSERT INTO `statuses` (`StatusCode`, `SatusName`) VALUES
 (4, 'Возврат по гарантии'),
 (5, 'Списано'),
 (6, 'Заказано');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `tokens`
+--
+
+CREATE TABLE IF NOT EXISTS `tokens` (
+  `token` varchar(32) NOT NULL,
+  `login` varchar(20) NOT NULL,
+  `start` timestamp NOT NULL default CURRENT_TIMESTAMP,
+  `end` timestamp NOT NULL default '0000-00-00 00:00:00',
+  PRIMARY KEY  (`token`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `tokens`
+--
+
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `users`
+--
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `login` varchar(20) NOT NULL default '',
+  `password` varchar(32) NOT NULL default '',
+  `email` varchar(30) default NULL,
+  PRIMARY KEY  (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `users`
+--
+
+INSERT INTO `users` (`login`, `password`, `email`) VALUES
+('ishayahu', '912ec803b2ce49e4a541068d495ab570', 'alexgor1@rambler.ru');
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
