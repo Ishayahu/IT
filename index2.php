@@ -1,9 +1,10 @@
 ﻿<?
+mysql_connect("46.254.16.220","it","planrabot");
+mysql_query("set names utf8");
+mysql_select_db("it");
+
 if (isset($_COOKIE['token'])):
 	$token=$_COOKIE['token'];
-	mysql_connect("46.254.16.220","it","planrabot");
-	mysql_query("set names utf8");
-	mysql_select_db("it");
 	$r=mysql_query("SELECT `start`, `end` FROM `tokens` WHERE `token`='$token';");
 	$f=mysql_fetch_array($r);
 	$now=time();
@@ -37,7 +38,6 @@ if (isset($_COOKIE['token'])):
 					<a href=\"it-assets_category.php\">Категории активов</a><br>
 					<a href=\"it-pc_names.php\">Компьютеры</a><br>
 					<a href=\"it-pc_components.php\">Состав компьютеров</a><br>		
-					<a href=\"it-new_user.php\">Новый пользователь</a><br>
 				</body>
 			</html>";
 	endif;
