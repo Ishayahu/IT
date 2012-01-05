@@ -1,6 +1,6 @@
 ﻿<?
 echo "<html>\n<head>\n<title>MySQL IT DB - Категории активов</title>\n<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"utf8\">\n</head>\n<body>";
-mysql_connect("46.254.16.220","it","planrabot");
+mysql_connect("","","");
 mysql_query("set names utf8");
 mysql_select_db("it");
 //если новая категория актива
