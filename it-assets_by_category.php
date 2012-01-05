@@ -1,5 +1,5 @@
 <?
-mysql_connect("46.254.16.220","it","planrabot");
+mysql_connect("","","");
 mysql_query("set names utf8");
 mysql_select_db("it");
 
