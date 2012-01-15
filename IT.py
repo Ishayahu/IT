@@ -12,9 +12,12 @@ def main():
 		'user': '',
 		'password': '',
 		'port': 3306}
-	config['host']=input('host: ')
-	config['user']=input('user: ')
-	config['password']=input('password: ')
+	config['host']=sys.argv[1]
+	config['user']=sys.argv[2]
+	config['password']=sys.argv[3]
+	#config['host']=input('host: ')
+	#config['user']=input('user: ')
+	#config['password']=input('password: ')
 	print (config)
 	print ("Соединение с базой")
 	db = mysql.connector.Connect(**config)
