@@ -1,8 +1,5 @@
 ﻿<?
 include 'connection.php';
-/*mysql_connect("46.254.16.220","it","planrabot");
-mysql_query("set names utf8");
-mysql_select_db("it");*/
 
 if (isset($_COOKIE['token'])):
 	$token=$_COOKIE['token'];

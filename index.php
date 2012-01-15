@@ -1,8 +1,5 @@
 <?
 include 'connection.php';
-/*mysql_connect("46.254.16.220","it","planrabot");
-mysql_query("set names utf8");
-mysql_select_db("it");*/
 //если введены данные
 if (isset($_GET['enter']) and $_GET['enter']=="Вход" and isset($_GET['password']) and isset($_GET['user'])):
 	$user=mysql_escape_string($_GET['user']);
