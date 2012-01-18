@@ -35,7 +35,8 @@ if (isset($_COOKIE['token'])):
 					<a href=\"it-printer_department.php\">Принтер-департамент</a><br>
 					<a href=\"it-assets_category.php\">Категории активов</a><br>
 					<a href=\"it-pc_names.php\">Компьютеры</a><br>
-					<a href=\"it-pc_components.php\">Состав компьютеров</a><br>		
+					<a href=\"it-pc_components.php\">Состав компьютеров</a><br>
+					<a href=\"it-remonts.php\">Ремонт активов</a><br>
 				</body>
 			</html>";
 	endif;
