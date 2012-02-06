@@ -87,7 +87,7 @@ def bill_close(cursor,ID):
 	query_logging(cursor,*QUERY,name='Закрытие счёта №'+ID)
 def bills_cashless(cursor):
 	stages=("ИЯ","Мотя","Борода","Оплата","Документы")
-	SELECT_WHAT_IS="SELECT `ID`, `BilNumber`, `DistributorName`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate` FROM `billcashless` WHERE `Documents` =0 OR `Peselev` =0 OR `Motya` =0 OR `Boroda` =0;"
+	SELECT_WHAT_IS="SELECT `ID`, `BillNumber`, `DistributorName`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate` FROM `billcashless` WHERE `Documents` =0 OR `Peselev` =0 OR `Motya` =0 OR `Boroda` =0;"
 	while True:
 		cursor.execute(SELECT_WHAT_IS)
 		bills=[row for row in cursor.fetchall()]
@@ -169,7 +169,7 @@ def query_logging(cursor,*queries,name=''):
 	logfile.close()
 def new_bill(cursor):
 	year, month, day, hour, minutes, sec=get_datatime()
-	BilNumber=get_string('Введите номер счёта',default='+++',min=1,max=100,allow_zero=False)
+	BillNumber=get_string('Введите номер счёта',default='+++',min=1,max=100,allow_zero=False)
 	DistributorName=get_distributor(cursor)
 	# получить ID этого счёта в таблице
 	QUERY_ID="SELECT MAX(`ID`) FROM `billcashless`;"
@@ -178,17 +178,14 @@ def new_bill(cursor):
 	#log=''
 	QUERY_U=[]
 	while True:
-		QUERY_U+=new_active(cursor,status=6,BillCashlessNumber=ID,BillNumber=BilNumber,DistributorName=DistributorName)
+		QUERY_U+=new_active(cursor,status=6,BillCashlessNumber=ID,BillNumber=BillNumber,DistributorName=DistributorName)
 		ans=what_to_do(('Ввести еще актив','Продолжить'))
 		if ans=='п': break
 	# записать счет в таблицу
-	QUERY_U+=["INSERT INTO `billcashless`(`ID`, `BilNumber`, `DistributorName`,`BillDate`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate`) VALUES ("+str(ID)+",'"+str(BilNumber)+"','"+str(DistributorName)+"','"+"-".join((str(year),str(month),str(day)))+"',0,0,0,0,0,'0000-00-00','0000-00-00')"]
+	BillDate="-".join((str(year),str(month),str(day)))
+	QUERY_U+=["INSERT INTO `billcashless`(`ID`, `BillNumber`, `DistributorName`,`BillDate`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate`) VALUES ("+str(ID)+",'"+str(BillNumber)+"','"+str(DistributorName)+"','"+BillDate+"',0,0,0,0,0,'0000-00-00','0000-00-00')"]
 	# запись в логи
-	#logging(log,QUERY_U)
-	#print (QUERY_U)
 	query_logging(cursor,*QUERY_U,name='Ввод счёта №'+str(ID)+' после ввода активов')
-								#cursor.execute(QUERY_U)
-	#print (QUERY_U)
 	# получение купленых товаров для сопроводиловки
 	QUERY='SELECT CONCAT(`ac`.`Name`,", модель ",`a`.`Model`) FROM `assets` `a` INNER JOIN `assetcategory` `ac` ON `ac`.`AssetCategoryNumber`=`a`.`AssetCategoryNumber` WHERE `a`.`BillCashlessNumber`='+str(ID)+";"
 	cursor.execute(QUERY)
@@ -200,11 +197,7 @@ def new_bill(cursor):
 	QUERY='SELECT SUM(`a`.`Price`) FROM `assets` `a` WHERE `a`.`BillCashlessNumber`='+str(ID)+" GROUP BY `a`.`BillCashlessNumber`;"
 	cursor.execute(QUERY)
 	bill_price=[row[0] for row in cursor.fetchall()][0]
-	sopr='В приемную господина Вайсберга\nПрошу Вас разрешить оплату счёта '+str(BilNumber)+' от '+"-".join((str(year),str(month),str(day)))+'\nНа сумму '+str(bill_price)+' руб.\nЦелевое назначение: '+what_in_bill+'\nОбъект  - Склад\nСвоевременное предоставление документов гарантирую.\nОтветственное лицо: Ластов Ишаяу\nКонтактные телефоны: +7-901-569-81-86; 645-05-16\nДата '+"-".join((str(year),str(month),str(day)))+'\nРасписка в приеме документов по произведенной оплате:\nОригинал счёта\nДоговор\nАкт\nНакладная\nСчёт-фактура'
-	temp=open('it.txt','w')
-	temp.write(sopr)
-	temp.close()
-	os.startfile('it.txt')
+	print_billcashless(BillNumber,BillDate,bill_price,what_in_bill,'Склад')
 def show_bills(list,datas):
 	"""функция для отображения полученных счетов с их данными в таблице (список счетов, список данных:("ИЯ","Мотя","Борода","Оплата","Документы"), 0-нет, 1-да)"""
 	# этапы прохождения счёта
@@ -264,9 +257,32 @@ def repairing(cursor):
 	GarantyNumber=get_integer('Введите номер гарантии',min=0,max=0,allow_zero=True)
 	BillNumber=get_string("Введите номер счёта",allow_zero=False)
 	MethodOfPayment=get_payment_metod()
-	QUERY_U='INSERT INTO `repairing`(`ID`, `AssetNumber`, `Breakdown`, `DistributorName`, `StartDate`, `EndDate`, `Garanty`, `Price`, `BillDate`, `GarantyNumber`, `BillNumber`, `MethodOfPayment`) VALUES (null,'+",".join((str(AssetNumber), "'"+Breakdown+"'", "'"+DistributorName+"'", "'"+StartDate+"'", "'"+EndDate+"'", str(Garanty), str(Price),  "'"+BillDate+"'", str(GarantyNumber),  "'"+BillNumber+"'",  "'"+MethodOfPayment+"'"))+");"
-	logging (QUERY_U)
-	cursor.execute(QUERY_U)
+	QUERY_U=['INSERT INTO `repairing`(`ID`, `AssetNumber`, `Breakdown`, `DistributorName`, `StartDate`, `EndDate`, `Garanty`, `Price`, `BillDate`, `GarantyNumber`, `BillNumber`, `MethodOfPayment`) VALUES (null,'+",".join((str(AssetNumber), "'"+Breakdown+"'", "'"+DistributorName+"'", "'"+StartDate+"'", "'"+EndDate+"'", str(Garanty), str(Price),  "'"+BillDate+"'", str(GarantyNumber),  "'"+BillNumber+"'",  "'"+MethodOfPayment+"'"))+");"]
+	if MethodOfPayment=='NC':
+		# получить ID этого счёта в таблице
+		QUERY_ID="SELECT MAX(`ID`) FROM `billcashless`;"
+		cursor.execute(QUERY_ID)
+		ID=[row[0] for row in cursor.fetchall()][0]+1
+		QUERY_U+=["INSERT INTO `billcashless`(`ID`, `BillNumber`, `DistributorName`,`BillDate`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate`) VALUES ("+str(ID)+",'"+str(BillNumber)+"','"+str(DistributorName)+"','"+str(BillDate)+"',0,0,0,0,0,'0000-00-00','"+str(BillDate)+"')"]
+	# запись в логи
+	query_logging(cursor,*QUERY_U,name='Ввод счёта №'+str(ID)+' по ремонту актива'+str(AssetNumber)+' ')
+	if MethodOfPayment=='NC':
+		QUERY="SELECT `Model` FROM `assets` WHERE `AssetNumber`="+str(AssetNumber)+";"
+		cursor.execute(QUERY)
+		Model=[row[0] for row in cursor.fetchall()][0]
+		QUERY="SELECT `Place` FROM `assets` WHERE `AssetNumber`="+str(AssetNumber)+";"
+		cursor.execute(QUERY)
+		place=[row[0] for row in cursor.fetchall()][0]
+		print_billcashless(BillNumber,BillDate,Price,'ремонт '+str(Model),place)
+	#logging (QUERY_U)
+	#cursor.execute(QUERY_U)
+def print_billcashless(BillNumber,BillDate,bill_price,what_in_bill,place):
+	sopr='В приемную господина Вайсберга\nПрошу Вас разрешить оплату счёта '+str(BillNumber)+' от '+str(BillDate)+'\nНа сумму '+str(bill_price)+' руб.\nЦелевое назначение: '+what_in_bill+'\nОбъект  - '+str(place)+'\nСвоевременное предоставление документов гарантирую.\nОтветственное лицо: Ластов Ишаяу\nКонтактные телефоны: +7-901-569-81-86; 645-05-16\nДата '+str(BillDate)+'\nРасписка в приеме документов по произведенной оплате:\nОригинал счёта\nДоговор\nАкт\nНакладная\nСчёт-фактура'
+	temp=open('it.txt','w')
+	temp.write(sopr)
+	temp.close()
+	os.startfile('it.txt')
+
 def invent_cartridge(cursor):
 	SELECT_WHAT_IS="SELECT `Model`,`AssetNumber` FROM `assets` WHERE `AssetCategoryNumber`=1 AND `StatusCode`=0 ORDER BY `Model`;"
 	cursor.execute(SELECT_WHAT_IS)
