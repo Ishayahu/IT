@@ -58,32 +58,37 @@ def bill_delete(cursor,ID):
 def bill_close(cursor,ID):
 	logging('Закрытие счёта'+ID)
 	year, month, day, hour, minutes, sec=get_datatime()
+	
 	# выбираем все активы, привязанные к этому счёту и меняем им статус, серийный номер, гарантия, номер гарантии, дату покупки
 	# меняем статус и дату покупки и номер гарантии так как это у всех одинаково
 	GarantyNumber=get_integer('Введите номер гарантии',default=0,min=0,max=999,allow_zero=True)
 	QUERY=["UPDATE `assets` SET `ByeDate`='"+"-".join((str(year),str(month),str(day)))+"',`GarantyNumber`="+str(GarantyNumber)+",`StatusCode`=0 WHERE `BillCashlessNumber`="+ID+";"]
-							#logging(QUERY)
-							#cursor.execute(QUERY)
-	# проход по активам по одному
-	QUERY_TMP="SELECT `AssetNumber`,`Model` FROM `assets` WHERE `BillCashlessNumber`="+ID+";"
+	
+	QUERY_TMP="SELECT COUNT(`AssetNumber`) FROM `assets` WHERE `BillCashlessNumber`="+ID+" GROUP BY `BillCashlessNumber`;"
 	cursor.execute(QUERY_TMP)
-	assets=[]
-	models=[]
-	for k,k1 in [(str(row[0]),row[1]) for row in cursor.fetchall()]:
-		assets.append(k)
-		models.append(k1)
-	#assets=(282,283)
-	for k in range(len(assets)):
-		# серийный номер, гарантия
-		SerialNumber=get_string('Введите серийный номер актива '+models[k]+' №'+str(assets[k]),default='',min=0,max=100,allow_zero=True)
-		Garanty=get_integer('Введите срок гарантии актива '+models[k]+' №'+str(assets[k]),default=0,min=0,max=999,allow_zero=True)
-		QUERY+=["UPDATE `assets` SET `SerialNumber`='"+str(SerialNumber)+"', `Garanty`="+str(Garanty)+" WHERE `AssetNumber` ="+str(assets[k])+";"]
-							#logging(QUERY)
-							#cursor.execute(QUERY)
-	# закрываем счёт
+	if not [row[0] for row in cursor.fetchall()][0]:
+		# если это был ремонт
+		
+	else:
+	# если это счёт с активами
+		# проход по активам по одному
+		QUERY_TMP="SELECT `AssetNumber`,`Model` FROM `assets` WHERE `BillCashlessNumber`="+ID+";"
+		cursor.execute(QUERY_TMP)
+		assets=[]
+		models=[]
+		for k,k1 in [(str(row[0]),row[1]) for row in cursor.fetchall()]:
+			assets.append(k)
+			models.append(k1)
+		#assets=(282,283)
+		for k in range(len(assets)):
+			# серийный номер, гарантия
+			SerialNumber=get_string('Введите серийный номер актива '+models[k]+' №'+str(assets[k]),default='',min=0,max=100,allow_zero=True)
+			Garanty=get_integer('Введите срок гарантии актива '+models[k]+' №'+str(assets[k]),default=0,min=0,max=999,allow_zero=True)
+			QUERY+=["UPDATE `assets` SET `SerialNumber`='"+str(SerialNumber)+"', `Garanty`="+str(Garanty)+" WHERE `AssetNumber` ="+str(assets[k])+";"]
+								#logging(QUERY)
+								#cursor.execute(QUERY)
+		# закрываем счёт
 	QUERY+=["UPDATE `billcashless` SET `Peselev`=1,`Motya`=1,`Boroda`=1,`Oplata`=1,`Documents`=1,`DocReturnDate`='"+"-".join((str(year),str(month),str(day)))+"',`DeliveryDate`='"+"-".join((str(year),str(month),str(day)))+"' WHERE `ID`="+ID+";"]
-							#logging(QUERY)	
-							#cursor.execute(QUERY)
 	query_logging(cursor,*QUERY,name='Закрытие счёта №'+ID)
 def bills_cashless(cursor):
 	stages=("ИЯ","Мотя","Борода","Оплата","Документы")
