@@ -66,10 +66,7 @@ def bill_close(cursor,ID):
 	
 	QUERY_TMP="SELECT COUNT(`AssetNumber`) FROM `assets` WHERE `BillCashlessNumber`="+ID+" GROUP BY `BillCashlessNumber`;"
 	cursor.execute(QUERY_TMP)
-	if not [row[0] for row in cursor.fetchall()][0]:
-		# если это был ремонт
-		
-	else:
+	if [row[0] for row in cursor.fetchall()][0]:
 	# если это счёт с активами
 		# проход по активам по одному
 		QUERY_TMP="SELECT `AssetNumber`,`Model` FROM `assets` WHERE `BillCashlessNumber`="+ID+";"
