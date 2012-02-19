@@ -1,6 +1,7 @@
 ﻿import sys, os,mysql.connector,time,datetime
 
-LOGFILE_NAME='C:\IT\it.log'
+LOGFILE_NAME='C:\\IT\\it.log'
+BUDJET_NAME='C:\\IT\\budget.csv'
 
 def main():
 	print ("Запуск скрипта")
@@ -66,7 +67,8 @@ def bill_close(cursor,ID):
 	
 	QUERY_TMP="SELECT COUNT(`AssetNumber`) FROM `assets` WHERE `BillCashlessNumber`="+ID+" GROUP BY `BillCashlessNumber`;"
 	cursor.execute(QUERY_TMP)
-	if [row[0] for row in cursor.fetchall()][0]:
+	try:
+		is_actives=[row[0] for row in cursor.fetchall()][0]
 	# если это счёт с активами
 		# проход по активам по одному
 		QUERY_TMP="SELECT `AssetNumber`,`Model` FROM `assets` WHERE `BillCashlessNumber`="+ID+";"
@@ -85,8 +87,12 @@ def bill_close(cursor,ID):
 								#logging(QUERY)
 								#cursor.execute(QUERY)
 		# закрываем счёт
-	QUERY+=["UPDATE `billcashless` SET `Peselev`=1,`Motya`=1,`Boroda`=1,`Oplata`=1,`Documents`=1,`DocReturnDate`='"+"-".join((str(year),str(month),str(day)))+"',`DeliveryDate`='"+"-".join((str(year),str(month),str(day)))+"' WHERE `ID`="+ID+";"]
-	query_logging(cursor,*QUERY,name='Закрытие счёта №'+ID)
+	# если счёт без активов
+	except IndexError:
+		pass
+	finally:
+		QUERY+=["UPDATE `billcashless` SET `Peselev`=1,`Motya`=1,`Boroda`=1,`Oplata`=1,`Documents`=1,`DocReturnDate`='"+"-".join((str(year),str(month),str(day)))+"',`DeliveryDate`='"+"-".join((str(year),str(month),str(day)))+"' WHERE `ID`="+ID+";"]
+		query_logging(cursor,*QUERY,name='Закрытие счёта №'+ID)
 def bills_cashless(cursor):
 	stages=("ИЯ","Мотя","Борода","Оплата","Документы")
 	SELECT_WHAT_IS="SELECT `ID`, `BillNumber`, `DistributorName`, `Peselev`, `Motya`, `Boroda`, `Oplata`, `Documents`, `DocReturnDate`, `DeliveryDate` FROM `billcashless` WHERE `Documents` =0 OR `Peselev` =0 OR `Motya` =0 OR `Boroda` =0;"
@@ -340,7 +346,7 @@ def budjet(cursor):
 		QUERY = "SELECT `ByeDate`, `Price`, `Model`, `BillNumber`, `AssetCategoryNumber` FROM `assets` WHERE `ByeDate` < '"+str(year)+"-"+str(month+1)+"-01' AND `ByeDate` >= '"+str(year)+"-"+str(month)+"-01' AND `MethodOfPayment`='"+MethodOfPayment+"' ORDER BY `ByeDate` ASC"
 		cursor.execute(QUERY)
 		TMP=[row for row in cursor.fetchall()]
-		file=open('budjet.csv','w',encoding='utf8')
+		file=open(BUDJET_NAME,'w',encoding='utf8')
 		file.write('"Дата","Расход","Остаток","На что","Чек","Категория"\n')
 		summ=25000
 		for k in TMP:
@@ -412,7 +418,8 @@ def new_active(cursor,status=0,BillCashlessNumber=-1,BillNumber='',DistributorNa
 					# если оплата по безналу
 					else:
 						QUERY+=["INSERT INTO `assets`(`AssetNumber`, `AssetCategoryNumber`, `Model`, `SerialNumber`, `StatusCode`, `Place`, `PCName`, `ByeDate`, `Garanty`, `Notes`, `Price`, `DistributorName`, `BillNumber`,  `BillCashlessNumber`,`MethodOfPayment`, `GarantyNumber`, `CancellationDate`) VALUES ("+",".join(('null',str(category[0]),"'"+model+"'",("'"+SerialNumber+"'" if SerialNumber else "''"),"'"+str(StatusCode)+"'", "'Склад'", 'null', "'"+"-".join((str(year),str(month),str(day)))+"'", str(Garanty), 'null', str(Price), "'"+DistributorName+"'", "'"+str(BillNumber)+"'", "'"+str(BillCashlessNumber)+"'", "'NC'", str(GarantyNumber), "'0000-00-00'"))+")"]
-						return QUERY
+				if not(BillCashlessNumber==-1):
+					return QUERY
 				#print (QUERY)
 				#logging(QUERY)
 				#cursor.execute(QUERY)
